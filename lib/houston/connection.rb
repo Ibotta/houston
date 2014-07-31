@@ -38,6 +38,11 @@ module Houston
     def open
       return false if open?
 
+      timeout = TX_TIMEOUT
+      secs = Integer(timeout)
+      usecs = Integer((timeout - secs) * 1_000_000)
+      optval = [secs, usecs].pack("l_2")
+
       @socket = TCPSocket.new(@uri.host, @uri.port)
       @socket.setsockopt Socket::SOL_SOCKET, Socket::SO_RCVTIMEO, optval
       @socket.setsockopt Socket::SOL_SOCKET, Socket::SO_SNDTIMEO, optval
@@ -48,14 +53,11 @@ module Houston
 
       context.timeout = CONNECTION_TIMEOUT
       context.ssl_timeout = CONNECTION_TIMEOUT
-      timeout = TX_TIMEOUT
-      secs = Integer(timeout)
-      usecs = Integer((timeout - secs) * 1_000_000)
-      optval = [secs, usecs].pack("l_2")
 
       @ssl = OpenSSL::SSL::SSLSocket.new(@socket, context)
 
       @ssl.sync = true
+      # @ssl.connect
 
       retries = 2
       begin
@@ -64,7 +66,7 @@ module Houston
         read_sock = IO.select([@ssl], nil, [@ssl], TX_TIMEOUT)
         retry if read_sock and read_sock[0]
         raise e
-      rescue IO::WaitWRitable => e
+      rescue IO::WaitWritable => e
         read_sock, write_sock = IO.select(nil, [@ssl], [@ssl], TX_TIMEOUT)
         retry if write_sock and write_sock[0]
         raise e
