@@ -2,10 +2,23 @@ require 'json'
 
 module Houston
   class Notification
-    MAXIMUM_PAYLOAD_SIZE = 256
+    MAXIMUM_PAYLOAD_SIZE = 256 #2048
 
-    attr_accessor :token, :alert, :badge, :sound, :content_available, :custom_data, :id, :expiry, :priority,
-      :apns_error_code
+    APNS_ERRORS = {
+      0 => nil,
+      1 => "Processing error",
+      2 => "Missing device token",
+      3 => "Missing topic",
+      4 => "Missing payload",
+      5 => "Invalid token size",
+      6 => "Invalid topic size",
+      7 => "Invalid payload size",
+      8 => "Invalid token",
+      10 => "Shutdown",
+      255 => "Unknown error"
+    }
+
+    attr_accessor :token, :alert, :badge, :sound, :content_available, :custom_data, :id, :expiry, :priority, :category, :apns_error_code
     attr_reader :sent_at
 
     alias :device :token
@@ -20,17 +33,19 @@ module Houston
       @id = options.delete(:id)
       @priority = options.delete(:priority)
       @content_available = options.delete(:content_available)
+      @category = options.delete(:category)
 
       @custom_data = options
     end
 
     def payload
-      json = {}.merge(@custom_data || {})
+      json = {}.merge(@custom_data || {}).inject({}){|h,(k,v)| h[k.to_s] = v; h}
       json['aps'] ||= {}
       json['aps']['alert'] = @alert if @alert
       json['aps']['badge'] = @badge.to_i rescue 0 if @badge
       json['aps']['sound'] = @sound if @sound
       json['aps']['content-available'] = 1 if @content_available
+      json['aps']['category'] = @category if @category
 
       json
     end
@@ -61,23 +76,11 @@ module Houston
     end
 
     def apns_error
-      {
-        0 => nil,
-        1 => "Processing error",
-        2 => "Missing device token",
-        3 => "Missing topic",
-        4 => "Missing payload",
-        5 => "Invalid token size",
-        6 => "Invalid topic size",
-        7 => "Invalid payload size",
-        8 => "Invalid token",
-        10 => "Shutdown",
-        255 => "Unknown error"
-      }[@apns_error_code]
+      APNS_ERRORS[@apns_error_code]
     end
 
     private
-    
+
     def device_token_item
       [1, 32, @token.gsub(/[<\s>]/, '')].pack('cnH64')
     end
