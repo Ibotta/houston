@@ -11,7 +11,6 @@ describe Houston::Notification do
       id: 42,
       priority: 10,
       content_available: true,
-      # custom data
       key1: 1,
       key2: 'abc'
     }
@@ -56,7 +55,7 @@ describe Houston::Notification do
 
   describe '#content_available' do
     subject { super().content_available }
-    it { should be_true }
+    it { should be_truthy }
   end
 
   describe '#custom_data' do
@@ -80,53 +79,53 @@ describe Houston::Notification do
   describe '#payload' do
     it 'should create a compliant dictionary' do
       expect(subject.payload).to eq({
-                                      'aps' => {
-                                        'alert' => 'Houston, we have a problem.',
-                                        'badge' => 2701,
-                                        'sound' => 'sosumi.aiff',
-                                        'content-available' => 1
-                                      },
-                                      'key1' => 1,
-                                      'key2' => 'abc'
+        'aps' => {
+          'alert' => 'Houston, we have a problem.',
+          'badge' => 2701,
+          'sound' => 'sosumi.aiff',
+          'content-available' => 1
+        },
+        'key1' => 1,
+        'key2' => 'abc'
       })
     end
 
     it 'should create a dictionary of only custom data and empty aps' do
       expect(Houston::Notification.new(key1: 123, key2: 'xyz').payload).to eq({
-                                                                                'aps' => {},
-                                                                                'key1' => 123,
-                                                                                'key2' => 'xyz'
+        'aps' => {},
+        'key1' => 123,
+        'key2' => 'xyz'
       })
     end
 
     it 'should create a dictionary only with alerts' do
       expect(Houston::Notification.new(alert: 'Hello, World!').payload).to eq({
-                                                                                'aps' => { 'alert' => 'Hello, World!' }
+        'aps' => { 'alert' => 'Hello, World!' }
       })
     end
 
     it 'should create a dictionary only with badges' do
       expect(Houston::Notification.new(badge: '123').payload).to eq({
-                                                                      'aps' => { 'badge' => 123 }
+        'aps' => { 'badge' => 123 }
       })
     end
 
     it 'should create a dictionary only with sound' do
       expect(Houston::Notification.new(sound: 'ring.aiff').payload).to eq({
-                                                                            'aps' => { 'sound' => 'ring.aiff' }
+        'aps' => { 'sound' => 'ring.aiff' }
       })
     end
 
     it 'should create a dictionary only with content-available' do
       expect(Houston::Notification.new(content_available: true).payload).to eq({
-                                                                                 'aps' => { 'content-available' => 1 }
+        'aps' => { 'content-available' => 1 }
       })
     end
 
     it 'should allow custom data inside aps key' do
       notification_options = { :badge => 567, 'aps' => { 'loc-key' => 'my-key' } }
       expect(Houston::Notification.new(notification_options).payload).to eq({
-                                                                              'aps' => { 'loc-key' => 'my-key', 'badge' => 567 }
+        'aps' => { 'loc-key' => 'my-key', 'badge' => 567 }
       })
     end
 
@@ -140,25 +139,25 @@ describe Houston::Notification do
     it 'should create notification from hash with string and symbol keys' do
       notification_options = { :badge => 567, :aps => { 'loc-key' => 'my-key' } }
       expect(Houston::Notification.new(notification_options).payload['aps']).to eq({
-                                                                                     'loc-key' => 'my-key', 'badge' => 567
+        'loc-key' => 'my-key', 'badge' => 567
       })
     end
   end
 
   describe '#sent?' do
     it 'should be false initially' do
-      expect(subject.sent?).to be_false
+      expect(subject.sent?).to be_falsey
     end
 
     it 'should be true after marking as sent' do
       subject.mark_as_sent!
-      expect(subject.sent?).to be_true
+      expect(subject.sent?).to be_truthy
     end
 
     it 'should be false after marking as unsent' do
       subject.mark_as_sent!
       subject.mark_as_unsent!
-      expect(subject.sent?).to be_false
+      expect(subject.sent?).to be_falsey
     end
   end
 
