@@ -21,9 +21,8 @@ module Houston
 
     MAXIMUM_PAYLOAD_SIZE = 2048
 
-    attr_accessor :token, :alert, :badge, :sound, :category, :content_available, :custom_data, :id, :expiry, :priority
+    attr_accessor :token, :alert, :badge, :sound, :category, :content_available, :custom_data, :id, :expiry, :priority, :apns_error_code
     attr_reader :sent_at
-    attr_writer :apns_error_code
 
     alias :device :token
     alias :device= :token=
