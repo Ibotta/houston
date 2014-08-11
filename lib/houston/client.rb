@@ -37,7 +37,7 @@ module Houston
     def push(*notifications)
       return if notifications.empty?
 
-      notifications.flatten!
+      notifications.flatten! #implicitly makes a copy with this and splat
       error = nil
 
       Connection.open(@gateway_uri, @certificate, @passphrase) do |connection|
