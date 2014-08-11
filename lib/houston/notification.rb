@@ -80,7 +80,7 @@ module Houston
     end
 
     def error
-      APNSError.new(APNSError::CODES[@apns_error_code]) if @apns_error_code.nonzero?
+      APNSError.new(APNSError::CODES[@apns_error_code]) if !@apns_error_code.nil? && @apns_error_code.nonzero?
     end
 
     private
